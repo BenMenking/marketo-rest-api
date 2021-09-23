@@ -247,6 +247,50 @@
                 "id": {"location": "uri"}
                 },
             "responseClass": "CSD\\Marketo\\Response\\ApproveEmailResponse"
+        },
+        "addActivities": {
+            "httpMethod": "POST",
+            "uri": "/rest/v1/activities/external.json",
+            "parameters": {
+                "input": {"location": "json"}
+                },
+            "responseClass": "CSD\\Marketo\\Response\\AddActivitiesResponse"
+        },
+        "addOpportunities": {
+            "httpMethod": "POST",
+            "uri": "/rest/v1/opportunities.json",
+            "parameters": {
+	            "action": {"location": "json"},
+                "input":  {"location": "json"}
+                },
+            "responseClass": "CSD\\Marketo\\Response\\AddOpportunitiesResponse"
+        },
+        "addOpportunitiesRole": {
+            "httpMethod": "POST",
+            "uri": "/rest/v1/opportunities/roles.json",
+            "parameters": {
+                "action": {"location": "json"},
+                "input": {"location": "json"}
+            },
+            "responseClass": "CSD\\Marketo\\Response\\AddOpportunitiesRoleResponse"
+        },
+        "getActivityTypes": {
+            "httpMethod": "GET",
+            "uri": "/rest/v1/activities/types.json",
+            "parameters": {
+                "id": {"location": "uri"}
+                },
+            "responseClass": "CSD\\Marketo\\Response\\AddActivitiesResponse"
+        },
+        "mergeLead": {
+            "httpMethod": "POST",
+            "uri": "/rest/v1/leads/{id}/merge.json",
+            "parameters": {
+                "id": {"location": "uri"},
+                "leadId": {"location": "query"},
+                "leadIds": {"location": "query"}
+            },
+            "responseClass": "CSD\\Marketo\\Response\\MergeLeadResponse"
         }
     }
 }

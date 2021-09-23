@@ -30,6 +30,8 @@ use CSD\Marketo\Response\GetLeadsResponse;
 use CSD\Marketo\Response\GetListResponse;
 use CSD\Marketo\Response\GetListsResponse;
 use CSD\Marketo\Response\IsMemberOfListResponse;
+use CSD\Marketo\Response\AddActivitiesResponse;
+use CSD\Marketo\Response\MergeLeadResponse;
 
 /**
  * Guzzle client for communicating with the Marketo.com REST API.
@@ -92,7 +94,7 @@ class Client extends GuzzleClient
      *
      * @link http://developers.marketo.com/documentation/rest/import-lead/
      *
-     * @return array
+     * @return Response/importLeadsCsv
      *
      * @throws \Exception
      */
@@ -116,7 +118,7 @@ class Client extends GuzzleClient
      *
      * @link http://developers.marketo.com/documentation/rest/get-import-lead-status/
      *
-     * @return array
+     * @return Response/getBulkUploadStatus
      */
     public function getBulkUploadStatus($batchId)
     {
@@ -134,7 +136,7 @@ class Client extends GuzzleClient
      *
      * @link http://developers.marketo.com/documentation/rest/get-import-failure-file/
      *
-     * @return Guzzle\Http\Message\Response
+     * @return Response/getBulkUploadFailures
      */
     public function getBulkUploadFailures($batchId)
     {
@@ -152,7 +154,7 @@ class Client extends GuzzleClient
      *
      * @link http://developers.marketo.com/documentation/rest/get-import-warning-file/
      *
-     * @return Guzzle\Http\Message\Response
+     * @return Response/getBulkUploadWarnings
      */
     public function getBulkUploadWarnings($batchId)
     {
@@ -178,10 +180,11 @@ class Client extends GuzzleClient
      *
      * @link http://developers.marketo.com/documentation/rest/createupdate-leads/
      *
-     * @return CreateOrUpdateLeadsResponse
+     * @return Response/CreateOrUpdateLeadsResponse
      */
-    private function createOrUpdateLeadsCommand($action, $leads, $lookupField, $args, $returnRaw = false)
-    {
+    private function createOrUpdateLeadsCommand($action, $leads, $lookupField, $args, $returnRaw = true)
+    {	
+
         $args['input'] = $leads;
         $args['action'] = $action;
 
@@ -190,6 +193,57 @@ class Client extends GuzzleClient
         }
 
         return $this->getResult('createOrUpdateLeads', $args, false, $returnRaw);
+    }
+    
+    /**
+     * Calls the addOpportunities command with the given action.
+     *
+     * @param string $action
+     * @param array  $leads
+     * @param string $lookupField
+     * @param array  $args
+     *
+     *
+     * @link http://developers.marketo.com/documentation/rest/createupdate-leads/
+     *
+     * @return Response/CreateOrUpdateLeadsResponse
+     */
+    private function addOpportunitiesCommand($action, $leads, $lookupField, $args, $returnRaw = true)
+    {	
+
+        $args['input'] = $leads;
+        $args['action'] = $action;
+
+        if (isset($lookupField)) {
+            $args['dedupeBy'] = $lookupField;
+        }
+
+        return $this->getResult('addOpportunities', $args, false, $returnRaw);
+    }
+    
+    /**
+     * Calls the addOpportunitiesRole command with the given action.
+     *
+     * @param string $action
+     * @param array  $leads
+     * @param string $lookupField
+     * @param array  $args
+     *
+     * @link http://developers.marketo.com/documentation/rest/createupdate-leads/
+     *
+     * @return Response/CreateOrUpdateLeadsResponse
+     */
+    private function addOpportunitiesRoleCommand($action, $leads, $lookupField, $args, $returnRaw = true)
+    {	
+
+        $args['input'] = $leads;
+        $args['action'] = $action;
+
+        if (isset($lookupField)) {
+            $args['dedupeBy'] = $lookupField;
+        }
+
+        return $this->getResult('addOpportunitiesRole', $args, false, $returnRaw);
     }
 
     /**
@@ -202,7 +256,7 @@ class Client extends GuzzleClient
      *
      * @link http://developers.marketo.com/documentation/rest/createupdate-leads/
      *
-     * @return CreateOrUpdateLeadsResponse
+     * @return Response/CreateOrUpdateLeadsResponse
      */
     public function createLeads($leads, $lookupField = null, $args = array())
     {
@@ -219,7 +273,7 @@ class Client extends GuzzleClient
      *
      * @link http://developers.marketo.com/documentation/rest/createupdate-leads/
      *
-     * @return CreateOrUpdateLeadsResponse
+     * @return Response/CreateOrUpdateLeadsResponse
      */
     public function createOrUpdateLeads($leads, $lookupField = null, $args = array())
     {
@@ -236,7 +290,7 @@ class Client extends GuzzleClient
      *
      * @link http://developers.marketo.com/documentation/rest/createupdate-leads/
      *
-     * @return CreateOrUpdateLeadsResponse
+     * @return Response/CreateOrUpdateLeadsResponse
      */
     public function updateLeads($leads, $lookupField = null, $args = array())
     {
@@ -253,11 +307,44 @@ class Client extends GuzzleClient
      *
      * @link http://developers.marketo.com/documentation/rest/createupdate-leads/
      *
-     * @return CreateOrUpdateLeadsResponse
+     * @return Response/CreateOrUpdateLeadsResponse
      */
     public function createDuplicateLeads($leads, $lookupField = null, $args = array())
     {
         return $this->createOrUpdateLeadsCommand('createDuplicate', $leads, $lookupField, $args);
+    }
+    
+    /**
+     * Create duplicates of the given leads.
+     *
+     * @param array  $opportunities
+     * @param string $lookupField
+     * @param array  $args
+     * @see Client::addOpportunitiesCommand()
+     *
+     * @link
+     *
+     * @return Response/addOpportunitiesResponse
+     */
+    public function addOpportunities($opportunities, $lookupField = 'externalOpportunityId', $args = array())
+    {
+        return $this->addOpportunitiesCommand('createOrUpdate', $opportunities, $lookupField, $args);
+    }
+    
+    /**
+     * Create duplicates of the given leads.
+     *
+     * @param array  $leads
+     * @param array  $args
+     * @see Client::addOpportunitiesRoleCommand()
+     *
+     * @link http://developers.marketo.com/documentation/rest/createupdate-leads/
+     *
+     * @return Response/CreateOrUpdateLeadsResponse
+     */
+    public function addOpportunitiesRole($leads, $lookupField = 'externalOpportunityId', $args = array())
+    {
+        return $this->addOpportunitiesRoleCommand('createOrUpdate', $leads, $lookupField, $args);
     }
 
     /**
@@ -268,7 +355,7 @@ class Client extends GuzzleClient
      *
      * @link http://developers.marketo.com/documentation/rest/get-multiple-lists/
      *
-     * @return GetListsResponse
+     * @return Response/GetListsResponse
      */
     public function getLists($ids = null, $args = array(), $returnRaw = false)
     {
@@ -287,7 +374,7 @@ class Client extends GuzzleClient
      *
      * @link http://developers.marketo.com/documentation/rest/get-list-by-id/
      *
-     * @return GetListResponse
+     * @return Response/GetListResponse
      */
     public function getList($id, $args = array(), $returnRaw = false)
     {
@@ -305,12 +392,23 @@ class Client extends GuzzleClient
      * @param string $nextPageToken
      * @link http://developers.marketo.com/documentation/rest/get-multiple-leads-by-filter-type/
      *
-     * @return GetLeadsResponse
+     * @return Response/GetLeadsResponse
      */
-    public function getLeadsByFilterType($filterType, $filterValues, $fields = array(), $nextPageToken = null, $returnRaw = false)
+    public function getLeadsByFilterType($filterType, array $filterValues, $fields = array(), $nextPageToken = null, $returnRaw = true)
     {
         $args['filterType'] = $filterType;
-        $args['filterValues'] = $filterValues;
+        
+		$memberIDs = array();
+		$member = 0; 
+		
+		foreach($filterValues as $value) {
+			$memberIDs[$member] = $value[$filterType];
+			$member++;	
+		}
+        
+        if (count($memberIDs)) {
+            $args['filterValues'] = implode(',', $memberIDs);
+        }
 
         if ($nextPageToken) {
             $args['nextPageToken'] = $nextPageToken;
@@ -335,7 +433,7 @@ class Client extends GuzzleClient
      *
      * @link http://developers.marketo.com/documentation/rest/get-multiple-leads-by-filter-type/
      *
-     * @return GetLeadResponse
+     * @return Response/GetLeadResponse
      */
     public function getLeadByFilterType($filterType, $filterValue, $fields = array(), $returnRaw = false)
     {
@@ -354,7 +452,7 @@ class Client extends GuzzleClient
      *
      * @link http://developers.marketo.com/documentation/rest/get-lead-partitions/
      *
-     * @return GetLeadPartitionsResponse
+     * @return Response/GetLeadPartitionsResponse
      */
     public function getLeadPartitions($args = array(), $returnRaw = false)
     {
@@ -369,7 +467,7 @@ class Client extends GuzzleClient
      *
      * @link http://developers.marketo.com/documentation/rest/get-multiple-leads-by-list-id/
      *
-     * @return GetLeadsResponse
+     * @return Response/GetLeadsResponse
      */
     public function getLeadsByList($listId, $args = array(), $returnRaw = false)
     {
@@ -387,7 +485,7 @@ class Client extends GuzzleClient
      *
      * @link http://developers.marketo.com/documentation/rest/get-lead-by-id/
      *
-     * @return GetLeadResponse
+     * @return Response/GetLeadResponse
      */
     public function getLead($id, $fields = null, $args = array(), $returnRaw = false)
     {
@@ -409,7 +507,7 @@ class Client extends GuzzleClient
      *
      * @link http://developers.marketo.com/documentation/rest/member-of-list/
      *
-     * @return IsMemberOfListResponse
+     * @return Response/IsMemberOfListResponse
      */
     public function isMemberOfList($listId, $id, $args = array(), $returnRaw = false)
     {
@@ -427,7 +525,7 @@ class Client extends GuzzleClient
      *
      * @link http://developers.marketo.com/documentation/rest/get-campaign-by-id/
      *
-     * @return GetCampaignResponse
+     * @return Response/GetCampaignResponse
      */
     public function getCampaign($id, $args = array(), $returnRaw = false)
     {
@@ -444,7 +542,7 @@ class Client extends GuzzleClient
      *
      * @link http://developers.marketo.com/documentation/rest/get-multiple-campaigns/
      *
-     * @return GetCampaignsResponse
+     * @return Response/GetCampaignsResponse
      */
     public function getCampaigns($ids = null, $args = array(), $returnRaw = false)
     {
@@ -464,7 +562,7 @@ class Client extends GuzzleClient
      *
      * @link http://developers.marketo.com/documentation/rest/add-leads-to-list/
      *
-     * @return AddOrRemoveLeadsToListResponse
+     * @return Response/addLeadsToList
      */
     public function addLeadsToList($listId, $leads, $args = array(), $returnRaw = false)
     {
@@ -483,7 +581,7 @@ class Client extends GuzzleClient
      *
      * @link http://developers.marketo.com/documentation/rest/remove-leads-from-list/
      *
-     * @return AddOrRemoveLeadsToListResponse
+     * @return Response/AddOrRemoveLeadsToListResponse
      */
     public function removeLeadsFromList($listId, $leads, $args = array(), $returnRaw = false)
     {
@@ -501,7 +599,7 @@ class Client extends GuzzleClient
      *
      * @link http://developers.marketo.com/documentation/rest/delete-lead/
      *
-     * @return DeleteLeadResponse
+     * @return Response/DeleteLeadResponse
      */
     public function deleteLead($leads, $args = array(), $returnRaw = false)
     {
@@ -520,7 +618,7 @@ class Client extends GuzzleClient
      *
      * @link http://developers.marketo.com/documentation/rest/request-campaign/
      *
-     * @return RequestCampaignResponse
+     * @return Response/requestCampaign
      */
     public function requestCampaign($id, $leads, $tokens = array(), $args = array(), $returnRaw = false)
     {
@@ -547,7 +645,7 @@ class Client extends GuzzleClient
      *
      * @link http://developers.marketo.com/documentation/rest/schedule-campaign/
      *
-     * @return ScheduleCampaignResponse
+     * @return Response/scheduleCampaign
      */
     public function scheduleCampaign($id, \DateTime $runAt = NULL, $tokens = array(), $args = array(), $returnRaw = false)
     {
@@ -573,7 +671,7 @@ class Client extends GuzzleClient
      *
      * @link http://developers.marketo.com/documentation/rest/associate-lead/
      *
-     * @return AssociateLeadResponse
+     * @return Response/associateLead
      */
     public function associateLead($id, $cookie = null, $args = array(), $returnRaw = false)
     {
@@ -593,7 +691,7 @@ class Client extends GuzzleClient
      * @param array  $args
      * @param bool   $returnRaw
      *
-     * @return GetPagingToken
+     * @return Response
      * @link http://developers.marketo.com/documentation/rest/get-paging-token/
      *
      */
@@ -612,7 +710,7 @@ class Client extends GuzzleClient
      * @param array        $args
      * @param bool         $returnRaw
      *
-     * @return GetLeadChanges
+     * @return Response/getLeadChanges
      * @link http://developers.marketo.com/documentation/rest/get-lead-changes/
      * @see  getPagingToken
      *
@@ -630,6 +728,30 @@ class Client extends GuzzleClient
     }
 
     /**
+     * Merge an Email
+     *
+     * @param int      $leadID
+     * @param array    $leadIDs
+     * @param array    $args
+     *
+     * @link http://developers.marketo.com/documentation/asset-api/approve-email-by-id/
+     *
+     * @return Response/mergeLead
+     */
+    public function mergeLead($leadID, $leadIDs, $args = array(), $returnRaw = true)
+    {
+        $args['id'] = implode(",", $leadID);
+        
+        if(count($leadIDs > 1)) {
+	        $args['leadIds'] = implode(",", $leadIDs);	
+        } else {
+	        $args['leadId'] = implode(",", $leadIDs);
+        }
+        
+        return $this->getResult('mergeLead', $args, false, $returnRaw);
+    }
+
+    /**
      * Update an editable section in an email
      *
      * @param int       $emailId
@@ -638,7 +760,7 @@ class Client extends GuzzleClient
      *
      * @link http://developers.marketo.com/documentation/asset-api/update-email-content-by-id/
      *
-     * @return Response
+     * @return Response/updateEmailContent
      */
     public function updateEmailContent($emailId, $args = array(), $returnRaw = false)
     {
@@ -656,7 +778,7 @@ class Client extends GuzzleClient
      *
      * @link http://developers.marketo.com/documentation/asset-api/update-email-content-in-editable-section/
      *
-     * @return UpdateEmailContentInEditableSectionResponse
+     * @return Response/updateEmailContentInEditableSection
      */
     public function updateEmailContentInEditableSection($emailId, $htmlId, $args = array(), $returnRaw = false)
     {
@@ -675,13 +797,112 @@ class Client extends GuzzleClient
      *
      * @link http://developers.marketo.com/documentation/asset-api/approve-email-by-id/
      *
-     * @return approveEmail
+     * @return Response/approveEmail
      */
     public function approveEmail($emailId, $args = array(), $returnRaw = false)
     {
         $args['id'] = $emailId;
 
         return $this->getResult('approveEmailbyId', $args, false, $returnRaw);
+    }
+    
+    /**
+     * Approve an email
+     *
+     * @param int       $emailId
+     * @param string    $htmlId
+     * @param array     $args
+     *
+     * @link http://developers.marketo.com/documentation/asset-api/approve-email-by-id/
+     * @special thanks https://github.com/marketo-api/marketo-rest-client/blob/
+     * @return Response/addActivities
+     */
+    public function addActivities($activities, $args = array(), $returnRaw = true)
+    {
+        $args['input'] = [];
+        foreach ($activities as $activity) {
+            // Validation: Required parameters.
+            foreach (['leadId', 'activityTypeId', 'primaryAttributeValue'] as $required) {
+                if (!isset($activity[$required])) {
+                    throw new \InvalidArgumentException("Required parameter \"{$required}\" is missing.");
+                }
+            }
+            // Validation: Activity date is required by the API, but making it optional here, defaulting to now.
+            if (!isset($activity['activityDate'])) {
+                $activity['activityDate'] = new \DateTime();
+            } elseif (!($activity['activityDate'] instanceof \DateTime)) {
+                throw new \InvalidArgumentException('Required parameter "activityDate" must be a DateTime object.');
+            }
+            // Format required parameters
+            $input = [
+                'leadId' => (int) $activity['leadId'],
+                'activityTypeId' => (int) $activity['activityTypeId'],
+                'primaryAttributeValue' => (string) $activity['primaryAttributeValue'],
+                'activityDate' => $activity['activityDate']->format('c'),
+            ];
+            // Optional parameters
+            if (isset($activity['apiName'])) {
+                $input['apiName'] = (string) $activity['apiName'];
+            }
+            if (isset($activity['status'])) {
+                $input['status'] = (string) $activity['status'];
+            }
+            // The optional 'attributes' parameter has some validation.
+            if (isset($activity['attributes'])) {
+                if (!is_array($activity['attributes'])) {
+                    throw new \InvalidArgumentException('Optional parameter "attributes" must be an array.');
+                }
+                $input['attributes'] = []; // Initialize
+                foreach ($activity['attributes'] as $attribute) {
+                    if (!is_array($attribute)) {
+                        throw new \InvalidArgumentException('The "attributes" parameter must contain child array(s).');
+                    }
+                    // Required child parameters
+                    foreach (['name', 'value'] as $required) {
+                        if (!isset($attribute[$required])) {
+                            throw new \InvalidArgumentException("Required array key \"{$required}\" is missing in the \"attributes\" parameter.");
+                        }
+                    }
+                    if($attribute['name'] == "Tax Deductible" || $attribute['name'] == "Anonymous" || $attribute['name'] == "Initial Deposit Date") {
+	                    $inputAttribute = [
+	                        'name' => (string) $attribute['name'],
+	                        'value' => $attribute['value'],
+	                    ];
+                    } else {
+	                	$inputAttribute = [
+	                        'name' => (string) $attribute['name'],
+	                        'value' => (string) $attribute['value'],
+	                    ];
+	                }
+                    // Optional child parameters
+                    if (isset($attribute['apiName'])) {
+                        $inputAttribute['apiName'] = (string) $attribute['apiName'];
+                    }
+                    $input['attributes'][] = $inputAttribute;
+                }
+            }
+            $args['input'][] = $input;
+ 
+        }
+        return $this->getResult('addActivities', $args, false, $returnRaw);
+    }
+    
+    /**
+     * Approve an email
+     *
+     * @param int       $emailId
+     * @param string    $htmlId
+     * @param array     $args
+     *
+     * @link http://developers.marketo.com/documentation/asset-api/approve-email-by-id/
+     *
+     * @return Response/getActivities
+     */
+    public function getActivities($activityID, $args = array(), $returnRaw = false)
+    {
+        $args['id'] = $activityID;
+
+        return $this->getResult('getActivityTypes', $args, false, $returnRaw);
     }
 
     /**
@@ -691,7 +912,7 @@ class Client extends GuzzleClient
      * @param array  $args
      * @param bool   $fixArgs
      *
-     * @return Response
+     * @return Response/getResult
      */
     private function getResult($command, $args, $fixArgs = false, $returnRaw = false)
     {
@@ -705,7 +926,7 @@ class Client extends GuzzleClient
             $url = preg_replace('/id%5B([0-9]+)%5D/', 'id', $cmd->getRequest()->getUrl());
             $cmd->getRequest()->setUrl($url);
         }
-
+        
         $cmd->prepare();
 
         if ($returnRaw) {
@@ -714,4 +935,5 @@ class Client extends GuzzleClient
 
         return $cmd->getResult();
     }
+
 }
