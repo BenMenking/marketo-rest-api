@@ -70,7 +70,7 @@ class Client extends GuzzleClient
         }
 
         $grantType = new Credentials($url, $config->get('client_id'), $config->get('client_secret'));
-        $auth = new Oauth2Plugin($grantType);
+        $auth = new Oauth2Plugin($grantType, null, ['access_token_in_header'=>true]);
 
         if ($config->get('bulk') === true) {
             $restUrl = sprintf('%s/bulk/v%d', rtrim($url, '/'), $config->get('version'));
@@ -387,20 +387,24 @@ class Client extends GuzzleClient
      * Get multiple leads by filter type.
      *
      * @param string $filterType   One of the supported filter types, e.g. id, cookie or email. See Marketo's documentation for all types.
-     * @param string $filterValues Comma separated list of filter values
+     * @param array|string $filterValues  An array or comma separated string of filter values
      * @param array  $fields       Array of field names to be returned in the response
      * @param string $nextPageToken
      * @link http://developers.marketo.com/documentation/rest/get-multiple-leads-by-filter-type/
      *
      * @return Response/GetLeadsResponse
      */
-    public function getLeadsByFilterType($filterType, array $filterValues, $fields = array(), $nextPageToken = null, $returnRaw = true)
+    public function getLeadsByFilterType($filterType, $filterValues, $fields = array(), $nextPageToken = null, $returnRaw = true)
     {
         $args['filterType'] = $filterType;
         
 		$memberIDs = array();
 		$member = 0; 
 		
+        if( is_string($filterValues) ) {
+            $filterValues = explode(',', $filterValues);
+        }
+
 		foreach($filterValues as $value) {
 			$memberIDs[$member] = $value[$filterType];
 			$member++;	
@@ -730,7 +734,7 @@ class Client extends GuzzleClient
     /**
      * Merge an Email
      *
-     * @param int      $leadID
+     * @param int|array      $leadID
      * @param array    $leadIDs
      * @param array    $args
      *
@@ -740,9 +744,13 @@ class Client extends GuzzleClient
      */
     public function mergeLead($leadID, $leadIDs, $args = array(), $returnRaw = true)
     {
+        if( is_int($leadID) ) {
+            $leadID = [$leadID];
+        }
+        
         $args['id'] = implode(",", $leadID);
         
-        if(count($leadIDs > 1)) {
+        if(count($leadIDs) > 1) {
 	        $args['leadIds'] = implode(",", $leadIDs);	
         } else {
 	        $args['leadId'] = implode(",", $leadIDs);
